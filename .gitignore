@@ -1,40 +1,4 @@
-﻿param(
-  [Parameter(Mandatory=$true)] [string]$Version,
-  [string]$Owner = "bacsyda",
-  [string]$Repo  = "tai-anh-sieu-toc",
-  [switch]$AlsoOneFile
-)
-$ErrorActionPreference = "Stop"
-
-# Bump __version__ trong source
-$src = Join-Path $PWD "image_downloader_app.py"
-(Get-Content $src -Raw) -replace '__version__\s*=\s*["''][^"'']+["'']', "__version__ = `"$Version`"" | Set-Content -Encoding UTF8 $src
-
-# Chuẩn bị build
-python -m pip install --upgrade pip | Out-Null
-pip install --upgrade pyinstaller | Out-Null
-
-# (PS5 không có toán tử ?:)
-$iconParam = ""
-if (Test-Path ".\app.ico") { $iconParam = "--icon app.ico" }
-
-# Build ONEDIR (ổn định)
-pyinstaller --clean --noupx --onedir --windowed --collect-all PySide6 --name "TaiAnhSieuToc" $iconParam image_downloader_app.py
-
-# ZIP onedir
-$ZipPath = ".\dist\TaiAnhSieuToc.zip"
-if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
-Compress-Archive -Path ".\dist\TaiAnhSieuToc\*" -DestinationPath $ZipPath -Force
-$SHA = (Get-FileHash -Path $ZipPath -Algorithm SHA256).Hash
-
-# (tuỳ chọn) build onefile để người dùng tải tay (không dùng cho manifest)
-if ($AlsoOneFile) {
-  pyinstaller --clean --noupx --onefile --windowed --collect-all PySide6 --name "TaiAnhSieuToc" $iconParam image_downloader_app.py
-}
-
-# Không theo dõi build trong git
-@'
-build/
+﻿build/
 dist/
 *.spec
 __pycache__/

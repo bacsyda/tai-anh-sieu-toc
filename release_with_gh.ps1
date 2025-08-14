@@ -5,6 +5,11 @@
 )
 
 $ErrorActionPreference = "Stop"
+# --- Auto-bump __version__ trong image_downloader_app.py ---
+$src = Join-Path $PWD "image_downloader_app.py"
+(Get-Content $src -Raw) `
+  -replace '__version__\s*=\s*["''][^"'']+["'']', "__version__ = `"$Version`"" `
+  | Set-Content -Encoding UTF8 $src
 
 # 1) Build
 pip install --upgrade pyinstaller | Out-Null

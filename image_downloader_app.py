@@ -24,7 +24,7 @@ Các tính năng sẵn có:
 
 import sys, subprocess
 
-__version__ = "1.0.0"  # <— cập nhật khi phát hành bản mới
+__version__ = "1.0.1"  # <— cập nhật khi phát hành bản mới
 # Trỏ tới JSON manifest public của bạn (raw GitHub/Gist hoặc server riêng)
 MANIFEST_URL = "https://raw.githubusercontent.com/bacsyda/tai-anh-sieu-toc/main/public/tai_anh_sieu_toc.json"  # TODO: thay link thật
 

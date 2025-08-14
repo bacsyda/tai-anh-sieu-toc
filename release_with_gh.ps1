@@ -45,7 +45,10 @@ $manifest = @"
 }
 "@
 $pub = Join-Path $PWD "public\tai_anh_sieu_toc.json"
-$manifest | Set-Content -Encoding UTF8 $pub
+$pub = ".\public\tai_anh_sieu_toc.json"
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText((Resolve-Path $pub), $manifest, $utf8NoBom)
+
 
 git add $pub
 git commit -m "chore: manifest $Version"

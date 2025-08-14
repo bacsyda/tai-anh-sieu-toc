@@ -1,21 +1,21 @@
 ﻿# -*- coding: utf-8 -*-
 """
-Táº£i áº£nh siÃªu tá»‘c â€” v1.0.2
-- Tá»± kiá»ƒm tra cáº­p nháº­t khi khá»Ÿi Ä‘á»™ng (hiá»‡n thÃ´ng bÃ¡o, ngÆ°á»i dÃ¹ng báº¥m "Táº£i vá»" Ä‘á»ƒ cÃ i)
-- Há»— trá»£ thay icon á»©ng dá»¥ng (Æ°u tiÃªn file app.ico bÃªn cáº¡nh exe; náº¿u khÃ´ng cÃ³ dÃ¹ng icon nhÃºng)
-- CÃ¡c tÃ­nh nÄƒng cÅ©: Ä‘a luá»“ng, chá»n áº£nh lá»›n nháº¥t, lá»c Ä‘á»‹nh dáº¡ng/thumbnail, dark mode, táº£i qua .txt
+Tải ảnh siêu tốc — v1.0.2
+- Tự kiểm tra cập nhật khi khởi động (hiện thông báo, người dùng bấm "Tải về" để cài)
+- Hỗ trợ thay icon ứng dụng (ưu tiên file app.ico bên cạnh exe; nếu không có dùng icon nhúng)
+- Các tính năng cũ: đa luồng, chọn ảnh lớn nhất, lọc định dạng/thumbnail, dark mode, tải qua .txt
 
-Build gá»£i Ã½ (Windows):
+Build gợi ý (Windows):
     pyinstaller --onefile --windowed --collect-all PySide6 --name "TaiAnhSieuToc" --icon app.ico image_downloader_app.py
-    (náº¿u khÃ´ng cÃ³ app.ico cÃ³ thá»ƒ bá» --icon)
+    (nếu không có app.ico có thể bỏ --icon)
 
-LÆ°u Ã½: MANIFEST_URL cáº§n trá» tá»›i JSON public trong repo GitHub cá»§a báº¡n.
+Lưu ý: MANIFEST_URL cần trỏ tới JSON public trong repo GitHub của bạn.
 """
 
 import sys, subprocess
 
-__version__ = "1.0.2"
-# Äáº·t máº·c Ä‘á»‹nh theo repo Ä‘Ã£ dÃ¹ng trÆ°á»›c Ä‘Ã³; Ä‘á»•i náº¿u khÃ¡c.
+__version__ = "1.0.3"
+# Đặt mặc định theo repo đã dùng trước đó; đổi nếu khác.
 MANIFEST_URL = "https://raw.githubusercontent.com/bacsyda/tai-anh-sieu-toc/main/public/tai_anh_sieu_toc.json"
 
 
@@ -23,14 +23,14 @@ def _install_if_missing(pkg: str):
     try:
         __import__(pkg)
     except Exception:
-        print(f"[Setup] ChÆ°a cÃ³ '{pkg}', Ä‘ang cÃ i...", flush=True)
+        print(f"[Setup] Chưa có '{pkg}', đang cài...", flush=True)
         subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
 for _pkg in ("requests", "bs4", "PySide6"):
     try:
         _install_if_missing(_pkg)
     except Exception as e:
-        print(f"[Setup] Lá»—i cÃ i {_pkg}: {e}")
+        print(f"[Setup] Lỗi cài {_pkg}: {e}")
 
 import os, re, hashlib, base64, threading, concurrent.futures, tempfile, json
 from threading import Lock
@@ -58,13 +58,13 @@ PIN_DIR_RE = re.compile(r"/(\d{2,5})x/")
 DATA_URL_RE = re.compile(r"^data:([^;,]+)?((?:;[^,]+)*)?,(.*)$", re.I)
 HINT_SIZES = {}
 
-# ====== App Icon (fallback nhÃºng) ======
+# ====== App Icon (fallback nhúng) ======
 _APP_ICON_B64 = (
     b"iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsSAAALEgHS3X78AAABr0lEQVR4nO3aMW7CQBBF0a2vB1w2tHkqg3Cw6j3mB4qAM5J5Hk3c0xqgqF0KXj2ZyQ5i+3xwW0QmH0z7o0I1a6d2i8k1H7wM9o+qO5p3tJf7S6Y8n3FQkAAAAAAAAAAAAAAAAAAACw3m1m1zVQW1X0mJQeJjQp8fJg8m+e3g3Q4wq7m1v1m7o0f4b9m3m4X3l1g0E0bB3IY5q3X3+Y1mAgm2tH7n1c5mU1u7Gx5yr2VxJ9eXG1bS7lCj0v5i5cb7b7j7m7qkq3k8qfUz0l0bqvX4HcNQ2d8H1z3k2o8tG3d7tV2Y2Wv3mU8qj9n8h2Jm2d8x4xk3rq9U6i1hU8bq8gqS3d4aX2pQ0oM2kX0b7W3p8fS7o9m0C3n8m3g8mGv0b9V6q7cQ9m7kWLq3rXx3g2h+Q6N0l2p1o0W1m4m8k4o9l8m8ZKp2a8c7m4ZpE2r8g6n5V4r8f5u4GxV7r9G6t9X+f7m8AAAAAAAAAAAAAAAAAAAAAPw5v8s5m6m2jDqAAAAAElFTkSuQmCC"
 )
 
 def load_app_icon() -> QIcon:
-    # Æ¯u tiÃªn icon runtime (app.ico / app.png) bÃªn cáº¡nh exe/py
+    # Ưu tiên icon runtime (app.ico / app.png) bên cạnh exe/py
     for name in ("app.ico", "app.png"):
         p = os.path.join(os.path.dirname(getattr(sys, 'executable', sys.argv[0])), name)
         if os.path.isfile(p):
@@ -268,29 +268,29 @@ def extract_image_urls(html, base_url):
 # ====== Save/Download ======
 
 def save_bytes(raw: bytes, out_dir: str, filename: str, min_bytes: int, allow_exts: set, seen_hashes: set, lock: Lock | None = None):
-    if min_bytes and len(raw) < min_bytes: return False, f"Bá» qua (nhá» hÆ¡n {min_bytes}B): {filename}"
+    if min_bytes and len(raw) < min_bytes: return False, f"Bỏ qua (nhỏ hơn {min_bytes}B): {filename}"
     ext = os.path.splitext(filename)[1].lower()
-    if allow_exts and ext and ext[1:] not in allow_exts: return False, f"Bá» qua (khÃ´ng náº±m trong allow): {filename}"
+    if allow_exts and ext and ext[1:] not in allow_exts: return False, f"Bỏ qua (không nằm trong allow): {filename}"
     h = hashlib.sha1(raw).hexdigest()
     if lock:
         with lock:
-            if h in seen_hashes: return False, f"Bá» qua (trÃ¹ng ná»™i dung): {filename}"
+            if h in seen_hashes: return False, f"Bỏ qua (trùng nội dung): {filename}"
             seen_hashes.add(h)
     else:
-        if h in seen_hashes: return False, f"Bá» qua (trÃ¹ng ná»™i dung): {filename}"
+        if h in seen_hashes: return False, f"Bỏ qua (trùng nội dung): {filename}"
         seen_hashes.add(h)
     out_path = ensure_unique(os.path.join(out_dir, filename))
     with open(out_path, "wb") as f: f.write(raw)
-    return True, f"ÄÃ£ lÆ°u: {out_path}"
+    return True, f"Đã lưu: {out_path}"
 
 def download_http_image(session, img_url, out_dir, referer, min_bytes, allow_exts, seen_hashes, lock: Lock | None = None):
     parsed = urlparse(img_url); filename = sanitize_filename(os.path.basename(parsed.path) or "image")
     headers = {"Referer": referer} if referer else {}
     try: r = session.get(img_url, stream=True, timeout=20, headers=headers, allow_redirects=True)
-    except requests.RequestException as e: return False, f"Lá»—i táº£i {img_url} -> {e}"
+    except requests.RequestException as e: return False, f"Lỗi tải {img_url} -> {e}"
     ct = r.headers.get("Content-Type", "").lower()
     if not is_image_content_type(ct) and not re.search(r"\.(png|jpe?g|gif|webp|avif|svg|bmp|tiff?)$", filename, re.I):
-        r.close(); return False, f"Bá» qua (khÃ´ng pháº£i áº£nh): {img_url} ({ct or 'no content-type'})"
+        r.close(); return False, f"Bỏ qua (không phải ảnh): {img_url} ({ct or 'no content-type'})"
     ext = choose_extension(filename, ct)
     filename = os.path.splitext(filename)[0] + ext
     raw = bytearray()
@@ -321,7 +321,7 @@ def download_with_progress(url: str, dest: str, log_cb):
                 for chunk in r.iter_content(1024 * 64):
                     if chunk:
                         f.write(chunk); done += len(chunk)
-                        if total: log_cb(f"Táº£i gÃ³i cáº­p nháº­t: {int(done * 100 / total)}%")
+                        if total: log_cb(f"Tải gói cập nhật: {int(done * 100 / total)}%")
         return True, None
     except Exception as e:
         return False, str(e)
@@ -378,7 +378,7 @@ class DownloaderWorker(QtCore.QThread):
                 success, msg = save_bytes(raw, self.out_dir, fname, self.min_bytes, self.allow_exts, self.seen_hashes, self.hash_lock)
                 self.log_msg.emit(msg); return success
             except Exception as e:
-                self.log_msg.emit(f"Lá»—i data URL -> {e}"); return False
+                self.log_msg.emit(f"Lỗi data URL -> {e}"); return False
         session = build_session()
         success, msg = download_http_image(session, img_url, self.out_dir, referer or img_url, self.min_bytes, self.allow_exts, self.seen_hashes, self.hash_lock)
         self.log_msg.emit(msg); return success
@@ -389,13 +389,13 @@ class DownloaderWorker(QtCore.QThread):
             try:
                 page = session.get(page_url, timeout=25); page.raise_for_status()
             except requests.RequestException as e:
-                self.log_msg.emit(f"Lá»—i táº£i trang {page_url}: {e}"); continue
+                self.log_msg.emit(f"Lỗi tải trang {page_url}: {e}"); continue
             urls = extract_image_urls(page.text, page_url);
-            if not urls: self.log_msg.emit(f"KhÃ´ng tÃ¬m tháº¥y áº£nh á»Ÿ: {page_url}"); continue
+            if not urls: self.log_msg.emit(f"Không tìm thấy ảnh ở: {page_url}"); continue
             collected.extend(urls)
         if not collected: self.finished.emit(0, 0); return
         final_urls = pick_largest_variants(session, list(dict.fromkeys(collected)))
-        total = len(final_urls); self.log_msg.emit(f"Sau khi gom biáº¿n thá»ƒ, cÃ²n {total} URL cáº§n táº£i.")
+        total = len(final_urls); self.log_msg.emit(f"Sau khi gom biến thể, còn {total} URL cần tải.")
         if total == 0: self.finished.emit(0, 0); return
         ok = 0; done = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as ex:
@@ -404,7 +404,7 @@ class DownloaderWorker(QtCore.QThread):
                 try:
                     if fut.result(): ok += 1
                 except Exception as e:
-                    self.log_msg.emit(f"Lá»—i worker: {e}")
+                    self.log_msg.emit(f"Lỗi worker: {e}")
                 done += 1; self.progress.emit(int(done * 100 / total))
                 if self._stop.is_set(): break
         self.finished.emit(ok, total)
@@ -413,49 +413,56 @@ class UpdateCheckWorker(QtCore.QThread):
     result = QtCore.Signal(object, object)  # (manifest or None, error or None)
     def run(self):
         try:
-            s = build_session(); r = s.get(MANIFEST_URL, timeout=10); r.raise_for_status(); manifest = r.json(); self.result.emit(manifest, None)
+            s = build_session()
+            r = s.get(MANIFEST_URL, timeout=10)
+            r.raise_for_status()
+            # strip BOM nếu có:
+            txt = r.content.decode("utf-8-sig", errors="replace")
+            manifest = json.loads(txt)
+            self.result.emit(manifest, None)
         except Exception as e:
             self.result.emit(None, e)
+
 
 # ====== Main Window ======
 class MainWindow(QMainWindow):
     def __init__(self, app: QApplication):
         super().__init__(); self.app = app
-        self.setWindowTitle("Táº£i áº£nh siÃªu tá»‘c"); self.setWindowIcon(load_app_icon()); self.setMinimumSize(940, 640)
+        self.setWindowTitle("Tải ảnh siêu tốc"); self.setWindowIcon(load_app_icon()); self.setMinimumSize(940, 640)
         cw = QWidget(); self.setCentralWidget(cw)
 
-        # Menu (giá»¯ láº¡i má»¥c trá»£ giÃºp)
+        # Menu (giữ lại mục trợ giúp)
         menubar = QMenuBar(self); self.setMenuBar(menubar)
-        help_menu = QMenu("Trá»£ giÃºp", self); menubar.addMenu(help_menu)
-        act_about = QAction("Giá»›i thiá»‡u", self); act_about.triggered.connect(self.show_about); help_menu.addAction(act_about)
+        help_menu = QMenu("Trợ giúp", self); menubar.addMenu(help_menu)
+        act_about = QAction("Giới thiệu", self); act_about.triggered.connect(self.show_about); help_menu.addAction(act_about)
 
         # Inputs
-        self.url_edit = QLineEdit(); self.url_edit.setPlaceholderText("DÃ¡n URL trang web...")
-        self.txt_edit = QLineEdit(); self.txt_edit.setPlaceholderText("(TÃ¹y chá»n) File .txt chá»©a danh sÃ¡ch URL â€” má»—i dÃ²ng 1 URL")
-        self.btn_txt = QPushButton("Chá»n file .txtâ€¦")
-        self.out_edit = QLineEdit(os.path.join(os.getcwd(), "images")); self.btn_out = QPushButton("Chá»n thÆ° má»¥câ€¦")
+        self.url_edit = QLineEdit(); self.url_edit.setPlaceholderText("Dán URL trang web...")
+        self.txt_edit = QLineEdit(); self.txt_edit.setPlaceholderText("(Tùy chọn) File .txt chứa danh sách URL — mỗi dòng 1 URL")
+        self.btn_txt = QPushButton("Chọn file .txt…")
+        self.out_edit = QLineEdit(os.path.join(os.getcwd(), "images")); self.btn_out = QPushButton("Chọn thư mục…")
         self.allow_edit = QLineEdit("jpg,png,webp,gif,avif")
         self.min_spin = QSpinBox(); self.min_spin.setRange(0, 10_000_000); self.min_spin.setValue(30000)
-        self.cb_no_data = QCheckBox("Bá» qua data: URL"); self.cb_no_data.setChecked(True)
-        self.cb_auto_ref = QCheckBox("Tá»± suy ra Referer tá»« domain"); self.cb_auto_ref.setChecked(True)
-        self.ref_edit = QLineEdit(); self.ref_edit.setPlaceholderText("TÃ¹y chá»n: Referer cá»¥ thá»ƒ (náº¿u site cháº·n hotlink)")
+        self.cb_no_data = QCheckBox("Bỏ qua data: URL"); self.cb_no_data.setChecked(True)
+        self.cb_auto_ref = QCheckBox("Tự suy ra Referer từ domain"); self.cb_auto_ref.setChecked(True)
+        self.ref_edit = QLineEdit(); self.ref_edit.setPlaceholderText("Tùy chọn: Referer cụ thể (nếu site chặn hotlink)")
         self.dark_cb = QCheckBox("Dark mode")
         self.workers_spin = QSpinBox(); self.workers_spin.setRange(1, 32); self.workers_spin.setValue(8)
 
         # Buttons
-        self.btn_start = QPushButton("Báº¯t Ä‘áº§u táº£i"); self.btn_stop = QPushButton("Há»§y"); self.btn_open = QPushButton("Má»Ÿ thÆ° má»¥c lÆ°u")
+        self.btn_start = QPushButton("Bắt đầu tải"); self.btn_stop = QPushButton("Hủy"); self.btn_open = QPushButton("Mở thư mục lưu")
         self.progress = QProgressBar(); self.progress.setRange(0, 100); self.progress.setValue(0)
         self.log = QTextEdit(); self.log.setReadOnly(True)
 
         grid = QGridLayout()
         grid.addWidget(QLabel("URL:"), 0, 0); grid.addWidget(self.url_edit, 0, 1, 1, 3)
-        grid.addWidget(QLabel("Danh sÃ¡ch URL (.txt):"), 1, 0); grid.addWidget(self.txt_edit, 1, 1, 1, 2); grid.addWidget(self.btn_txt, 1, 3)
-        grid.addWidget(QLabel("ThÆ° má»¥c lÆ°u:"), 2, 0); grid.addWidget(self.out_edit, 2, 1, 1, 2); grid.addWidget(self.btn_out, 2, 3)
-        grid.addWidget(QLabel("Äá»‹nh dáº¡ng cho phÃ©p:"), 3, 0); grid.addWidget(self.allow_edit, 3, 1)
-        grid.addWidget(QLabel("Min bytes (lá»c nhá»):"), 3, 2); grid.addWidget(self.min_spin, 3, 3)
+        grid.addWidget(QLabel("Danh sách URL (.txt):"), 1, 0); grid.addWidget(self.txt_edit, 1, 1, 1, 2); grid.addWidget(self.btn_txt, 1, 3)
+        grid.addWidget(QLabel("Thư mục lưu:"), 2, 0); grid.addWidget(self.out_edit, 2, 1, 1, 2); grid.addWidget(self.btn_out, 2, 3)
+        grid.addWidget(QLabel("Định dạng cho phép:"), 3, 0); grid.addWidget(self.allow_edit, 3, 1)
+        grid.addWidget(QLabel("Min bytes (lọc nhỏ):"), 3, 2); grid.addWidget(self.min_spin, 3, 3)
         grid.addWidget(self.cb_no_data, 4, 1); grid.addWidget(self.cb_auto_ref, 4, 2)
-        grid.addWidget(QLabel("Referer (tÃ¹y chá»n):"), 5, 0); grid.addWidget(self.ref_edit, 5, 1, 1, 3)
-        grid.addWidget(QLabel("Sá»‘ luá»“ng táº£i:"), 6, 0); grid.addWidget(self.workers_spin, 6, 1); grid.addWidget(self.dark_cb, 6, 2)
+        grid.addWidget(QLabel("Referer (tùy chọn):"), 5, 0); grid.addWidget(self.ref_edit, 5, 1, 1, 3)
+        grid.addWidget(QLabel("Số luồng tải:"), 6, 0); grid.addWidget(self.workers_spin, 6, 1); grid.addWidget(self.dark_cb, 6, 2)
         btn_row = QHBoxLayout(); btn_row.addWidget(self.btn_start); btn_row.addWidget(self.btn_stop); btn_row.addStretch(1); btn_row.addWidget(self.btn_open)
         vbox = QVBoxLayout(cw); vbox.addLayout(grid); vbox.addWidget(self.progress); vbox.addLayout(btn_row); vbox.addWidget(self.log, 1)
 
@@ -470,26 +477,26 @@ class MainWindow(QMainWindow):
 
     # ===== Update flow =====
     def show_about(self):
-        QMessageBox.information(self, "Giá»›i thiá»‡u", f"Táº£i áº£nh siÃªu tá»‘c\nPhiÃªn báº£n: {__version__}")
+        QMessageBox.information(self, "Giới thiệu", f"Tải ảnh siêu tốc\nPhiên bản: {__version__}")
 
     def auto_check_updates(self):
-        self.log.append("Äang kiá»ƒm tra cáº­p nháº­t...")
+        self.log.append("Đang kiểm tra cập nhật...")
         self.up_worker = UpdateCheckWorker(); self.up_worker.result.connect(self.on_update_checked); self.up_worker.start()
 
     def on_update_checked(self, manifest, err):
         if err:
-            self.log.append(f"KhÃ´ng kiá»ƒm tra Ä‘Æ°á»£c cáº­p nháº­t: {err}")
+            self.log.append(f"Không kiểm tra được cập nhật: {err}")
             return
         latest = str(manifest.get("version", "0.0.0")); cur = parse_version_tuple(__version__); lat = parse_version_tuple(latest)
         if lat <= cur:
-            self.log.append("Báº¡n Ä‘ang dÃ¹ng báº£n má»›i nháº¥t.")
+            self.log.append("Bạn đang dùng bản mới nhất.")
             return
         win = manifest.get("windows", {}); url = win.get("url"); sha = (win.get("sha256") or "").lower()
         if not url:
-            self.log.append("Manifest thiáº¿u URL táº£i cho Windows.")
+            self.log.append("Manifest thiếu URL tải cho Windows.")
             return
-        # Há»i táº£i ngay
-        ret = QMessageBox.question(self, "CÃ³ báº£n cáº­p nháº­t", f"PhÃ¡t hiá»‡n phiÃªn báº£n má»›i {latest}.\nBáº¡n cÃ³ muá»‘n táº£i vÃ  cÃ i Ä‘áº·t ngay khÃ´ng?",
+        # Hỏi tải ngay
+        ret = QMessageBox.question(self, "Có bản cập nhật", f"Phát hiện phiên bản mới {latest}.\nBạn có muốn tải và cài đặt ngay không?",
                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
         if ret == QMessageBox.Yes:
             self.download_and_install(url, sha, latest)
@@ -497,19 +504,19 @@ class MainWindow(QMainWindow):
     def download_and_install(self, url: str, sha: str, latest: str):
         exe_path = get_current_exe_path()
         if not exe_path:
-            QMessageBox.information(self, "Cáº­p nháº­t", f"Báº¡n Ä‘ang cháº¡y tá»« source.\nVui lÃ²ng táº£i file .exe má»›i táº¡i:\n{url}")
+            QMessageBox.information(self, "Cập nhật", f"Bạn đang chạy từ source.\nVui lòng tải file .exe mới tại:\n{url}")
             return
         tmp_dir = tempfile.gettempdir(); new_path = os.path.join(tmp_dir, f"TaiAnhSieuToc_{latest}.exe")
         ok, err = download_with_progress(url, new_path, self.log.append)
         if not ok:
-            QMessageBox.warning(self, "Cáº­p nháº­t", f"Táº£i tháº¥t báº¡i: {err}")
+            QMessageBox.warning(self, "Cập nhật", f"Tải thất bại: {err}")
             try: os.remove(new_path)
             except: pass
             return
         if sha:
             calc = sha256sum(new_path).lower()
             if calc != sha:
-                QMessageBox.warning(self, "Cáº­p nháº­t", f"Sai checksum!\nManifest: {sha}\nTáº£i Ä‘Æ°á»£c: {calc}")
+                QMessageBox.warning(self, "Cập nhật", f"Sai checksum!\nManifest: {sha}\nTải được: {calc}")
                 try: os.remove(new_path)
                 except: pass
                 return
@@ -518,20 +525,20 @@ class MainWindow(QMainWindow):
             if sys.platform.startswith('win'):
                 subprocess.Popen(["cmd", "/c", "start", "", up_bat], shell=True)
             else:
-                QMessageBox.information(self, "Cáº­p nháº­t", "Tá»± cáº­p nháº­t hiá»‡n chá»‰ há»— trá»£ Windows.")
+                QMessageBox.information(self, "Cập nhật", "Tự cập nhật hiện chỉ hỗ trợ Windows.")
                 return
         except Exception as e:
-            QMessageBox.warning(self, "Cáº­p nháº­t", f"KhÃ´ng cháº¡y Ä‘Æ°á»£c updater: {e}")
+            QMessageBox.warning(self, "Cập nhật", f"Không chạy được updater: {e}")
             return
         QApplication.instance().quit()
 
     # ===== UI actions =====
     def toggle_dark(self, checked: bool): apply_dark_mode(self.app, checked)
     def pick_dir(self):
-        d = QFileDialog.getExistingDirectory(self, "Chá»n thÆ° má»¥c lÆ°u", self.out_edit.text() or os.getcwd())
+        d = QFileDialog.getExistingDirectory(self, "Chọn thư mục lưu", self.out_edit.text() or os.getcwd())
         if d: self.out_edit.setText(d)
     def pick_txt(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Chá»n file .txt chá»©a danh sÃ¡ch URL", os.getcwd(), "Text files (*.txt)")
+        path, _ = QFileDialog.getOpenFileName(self, "Chọn file .txt chứa danh sách URL", os.getcwd(), "Text files (*.txt)")
         if path: self.txt_edit.setText(path)
     def start_download(self):
         pages = []
@@ -543,12 +550,12 @@ class MainWindow(QMainWindow):
                         u = line.strip();
                         if u: pages.append(u)
             except Exception as e:
-                self.log.append(f"KhÃ´ng Ä‘á»c Ä‘Æ°á»£c file .txt: {e}")
+                self.log.append(f"Không đọc được file .txt: {e}")
         if not pages:
             url = self.url_edit.text().strip();
             if url: pages = [url]
         if not pages:
-            self.log.append("â— Vui lÃ²ng nháº­p URL hoáº·c chá»n file .txt danh sÃ¡ch URL."); return
+            self.log.append("❗ Vui lòng nhập URL hoặc chọn file .txt danh sách URL."); return
         out_dir = self.out_edit.text().strip() or os.path.join(os.getcwd(), "images")
         allow_exts = set([e.strip().lower() for e in self.allow_edit.text().split(",") if e.strip()])
         min_bytes = int(self.min_spin.value()); accept_data = not self.cb_no_data.isChecked()
@@ -560,7 +567,7 @@ class MainWindow(QMainWindow):
     def stop_download(self):
         if self.worker and self.worker.isRunning(): self.worker.stop()
     def on_finished(self, ok: int, total: int):
-        self.log.append(f"\nâœ… HoÃ n táº¥t: {ok}/{total} áº£nh há»£p lá»‡."); self.btn_start.setEnabled(True); self.progress.setValue(100)
+        self.log.append(f"\n✅ Hoàn tất: {ok}/{total} ảnh hợp lệ."); self.btn_start.setEnabled(True); self.progress.setValue(100)
     def open_dir(self):
         path = self.out_edit.text().strip() or os.path.join(os.getcwd(), "images")
         try:
@@ -569,7 +576,7 @@ class MainWindow(QMainWindow):
                 elif sys.platform == 'darwin': subprocess.Popen(['open', path])
                 else: subprocess.Popen(['xdg-open', path])
         except Exception as e:
-            self.log.append(f"KhÃ´ng má»Ÿ Ä‘Æ°á»£c thÆ° má»¥c: {e}")
+            self.log.append(f"Không mở được thư mục: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv); w = MainWindow(app); w.show(); sys.exit(app.exec())

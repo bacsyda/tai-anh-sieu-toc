@@ -1,60 +1,29 @@
-name: Auto Release
+name: Build and Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g., 1.0.4)"
+        required: true
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # cần để tạo tag
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Setup Git
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
-
-      - name: Detect next version
-        id: version
-        shell: pwsh
-        run: |
-          $tags = git tag --sort=-v:refname
-          if ($tags) {
-            $last = $tags[0].TrimStart("v")
-            $parts = $last.Split(".")
-            $parts[2] = [int]$parts[2] + 1
-            $newVer = "$($parts[0]).$($parts[1]).$($parts[2])"
-          } else {
-            $newVer = "1.0.0"
-          }
-          echo "version=$newVer" >> $env:GITHUB_OUTPUT
-
-      - name: Delete old tag if exists (local & remote)
-        run: |
-          git tag -d v${{ steps.version.outputs.version }} || true
-          git push origin :refs/tags/v${{ steps.version.outputs.version }} || true
-
-      - name: Create Git tag
-        run: |
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
+          pip install pyinstaller PySide6
 
       - name: Build EXE
         run: |
@@ -65,33 +34,12 @@ jobs:
 
       - name: Create ZIP
         run: |
-          Compress-Archive -Path "dist/TaiAnhSieuToc/*" -DestinationPath "dist/TaiAnhSieuToc_${{ steps.version.outputs.version }}.zip"
+          Compress-Archive -Path "dist/TaiAnhSieuToc/*" -DestinationPath "dist/TaiAnhSieuToc_${{ github.event.inputs.version }}.zip"
 
-      - name: Calculate SHA256
-        id: sha
-        shell: pwsh
-        run: |
-          $hash = Get-FileHash "dist/TaiAnhSieuToc_${{ steps.version.outputs.version }}.zip" -Algorithm SHA256
-          echo "sha256=$($hash.Hash)" >> $env:GITHUB_OUTPUT
-
-      - name: Update manifest.json
-        shell: pwsh
-        run: |
-          $manifestPath = "manifest.json"
-          $manifest = Get-Content $manifestPath | ConvertFrom-Json
-          $manifest.version = "${{ steps.version.outputs.version }}"
-          $manifest.windows.url = "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/TaiAnhSieuToc_${{ steps.version.outputs.version }}.zip"
-          $manifest.windows.sha256 = "${{ steps.sha.outputs.sha256 }}"
-          $manifest | ConvertTo-Json -Depth 10 | Set-Content $manifestPath -Encoding UTF8
-          git add $manifestPath
-          git commit -m "chore: update manifest to ${{ steps.version.outputs.version }}" || echo "No changes to commit"
-          git push origin main
-
-      - name: Create GitHub Release + upload ZIP
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
-          body: Release v${{ steps.version.outputs.version }}: build and auto-update package
-          files: |
-            dist/TaiAnhSieuToc_${{ steps.version.outputs.version }}.zip
+          tag_name: v${{ github.event.inputs.version }}
+          name: v${{ github.event.inputs.version }}
+          body: Release ${{ github.event.inputs.version }} - build and auto-update package
+          files: dist/TaiAnhSieuToc_${{ github.event.inputs.version }}.zip

@@ -1,5 +1,5 @@
 ﻿{
   "version": "1.0.2",
-  "windows": { "url": "https://github.com/bacsyda/tai-anh-sieu-toc/releases/download/v1.0.2/TaiAnhSieuToc.exe", "sha256": "73EA1D59BA2293FBDADD6BFB76DE569A956833146CB4546C9EABAB95C9D49734" },
+  "windows": { "url": "https://github.com/bacsyda/tai-anh-sieu-toc/releases/download/v1.0.2/TaiAnhSieuToc.exe", "sha256": "96DCCACE1FB9A629AC69E8245AD07D2B56238A0B71AD857EF8C4DCEE6DCB7CBA" },
   "notes":  "Phát hành 1.0.2"
 }

@@ -1,91 +1,69 @@
-name: Release
+name: Build & Release
 
 on:
   push:
     tags:
-      - 'v*'          # chạy khi bạn push tag v1.0.4, v1.0.5, ...
-
-permissions:
-  contents: write     # cần quyền để tạo release & commit manifest
+      - 'v*'
 
 jobs:
-  build-and-release:
+  build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Compute tag/version
-        id: meta
-        shell: bash
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          VER="${TAG#v}"              # bỏ tiền tố 'v'
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "ver=$VER" >> $GITHUB_OUTPUT
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller PySide6 beautifulsoup4 requests
+          pip install pyinstaller pyside6
 
-      - name: Build onedir (PyInstaller)
+      - name: Build EXE
         run: |
           pyinstaller --clean --noupx --onedir --windowed --collect-all PySide6 `
             --name TaiAnhSieuToc `
-            --icon app.ico `
-            image_downloader_app.py
+            --icon .\app.ico `
+            .\image_downloader_app.py
 
-      - name: Zip artifact
-        shell: pwsh
+      - name: Zip build
         run: |
-          $ver = '${{ steps.meta.outputs.ver }}'
-          Compress-Archive -Path "dist/TaiAnhSieuToc/*" -DestinationPath "dist/TaiAnhSieuToc_$ver.zip"
+          Compress-Archive -Path "dist/TaiAnhSieuToc/*" -DestinationPath "dist/TaiAnhSieuToc_${{ github.ref_name }}.zip"
 
-      - name: Create GitHub Release + upload ZIP
-        uses: softprops/action-gh-release@v2
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: ${{ steps.meta.outputs.tag }}
-          body: Release ${{ steps.meta.outputs.ver }}: build and auto-update package
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: Release ${{ github.ref_name }}: build and auto-update package
           files: |
-            dist/TaiAnhSieuToc_${{ steps.meta.outputs.ver }}.zip
+            dist/TaiAnhSieuToc_${{ github.ref_name }}.zip
 
       - name: Update manifest (version, url, sha256)
         shell: pwsh
         run: |
-          $tag    = '${{ steps.meta.outputs.tag }}'
-          $ver    = '${{ steps.meta.outputs.ver }}'
-          $zip    = "dist/TaiAnhSieuToc_$ver.zip"
-          $sha    = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLower()
-          $repo   = "${{ github.repository }}"
-          $zipUrl = "https://github.com/$repo/releases/download/$tag/TaiAnhSieuToc_$ver.zip"
+          $ver = "${{ github.ref_name }}".TrimStart("v")
+          $zipPath = "dist/TaiAnhSieuToc_${{ github.ref_name }}.zip"
+          $sha256 = (Get-FileHash -Algorithm SHA256 $zipPath).Hash.ToLower()
+          $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/TaiAnhSieuToc_${{ github.ref_name }}.zip"
+          $manifest = @{
+            version = $ver
+            windows = @{
+              url = $url
+              sha256 = $sha256
+            }
+            notes = "Phát hành $ver"
+          } | ConvertTo-Json -Depth 10
+          $manifest | Out-File -Encoding utf8 public/tai_anh_sieu_toc.json
 
-          $manifest = "public/tai_anh_sieu_toc.json"
-          if (Test-Path $manifest) {
-            $man = Get-Content -Raw -Encoding UTF8 $manifest | ConvertFrom-Json
-          } else {
-            $man = [ordered]@{}
-          }
-          if (-not $man.windows) { $man | Add-Member -NotePropertyName windows -NotePropertyValue (@{}) }
-
-          $man.version = $ver
-          $man.windows.url = $zipUrl
-          $man.windows.sha256 = $sha
-          $man.notes = "Phát hành $ver"
-
-          $man | ConvertTo-Json -Depth 6 | Set-Content -Encoding UTF8 $manifest
-
-      - name: Commit & push manifest
+      - name: Commit manifest update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/tai_anh_sieu_toc.json
-          git commit -m "chore: update manifest to ${{ steps.meta.outputs.tag }}"
+          git commit -m "chore: update manifest to ${{ github.ref_name }}"
           git push

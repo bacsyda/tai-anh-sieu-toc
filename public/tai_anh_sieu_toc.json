@@ -1,3 +1,8 @@
-version = 1.0.0
-url = https://github.com/bacsyd/tai-anh-sieu-toc/releases/download/v1.0.0/TaiAnhSieuToc.exe
-sha256 = 94AF1AEBAD96B8803E3D7B47AC11E5C503E16784FF787F0686482E150E065915
+{
+  "version": "1.0.1",
+  "windows": {
+    "url": "https://github.com/bacsyda/tai-anh-sieu-toc/releases/download/v1.0.1/TaiAnhSieuToc.exe",
+    "sha256": "89406BB72703A043F1AA4039E005D14F04A144FB76CA2AD79C56C200462A0C37"
+  },
+  "notes": "Ghi chú phát hành 1.0.1"
+}

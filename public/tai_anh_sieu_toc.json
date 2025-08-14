@@ -1,8 +1,5 @@
 ﻿{
   "version": "1.0.1",
-  "windows": {
-    "url": "https://github.com/bacsyda/tai-anh-sieu-toc/releases/download/v1.0.1/TaiAnhSieuToc.exe",
-    "sha256": ""
-  },
-  "notes": "Tải ảnh siêu tốc 1.0.1"
+  "windows": { "url": "https://github.com/bacsyda/tai-anh-sieu-toc/releases/download/v1.0.1/TaiAnhSieuToc.exe", "sha256": "CD5322EDD553A64BF22B9E211DD43FF9A23B09660A77CB921A731690E008FC77" },
+  "notes":  "Phát hành 1.0.1"
 }

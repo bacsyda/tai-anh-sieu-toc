@@ -26,7 +26,7 @@ import sys, subprocess
 
 __version__ = "1.0.0"  # <— cập nhật khi phát hành bản mới
 # Trỏ tới JSON manifest public của bạn (raw GitHub/Gist hoặc server riêng)
-MANIFEST_URL = "https://raw.githubusercontent.com/<owner>/<repo>/main/public/tai_anh_sieu_toc.json"  # TODO: thay link thật
+MANIFEST_URL = "https://raw.githubusercontent.com/bacsyda/tai-anh-sieu-toc/main/public/tai_anh_sieu_toc.json"  # TODO: thay link thật
 
 
 def _install_if_missing(pkg: str):

@@ -1,1 +1,3 @@
-﻿{"version":"0.0.0","windows":{"url":"https://example.com/TaiAnhSieuToc.exe","sha256":""}}
+version = 1.0.0
+url = https://github.com/bacsyd/tai-anh-sieu-toc/releases/download/v1.0.0/TaiAnhSieuToc.exe
+sha256 = <giá trị SHA256>
